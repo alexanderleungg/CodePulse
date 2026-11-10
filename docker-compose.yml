@@ -1,0 +1,37 @@
+services:
+  codepulse:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      CODEPULSE_DATA_DIR: /app/data
+      # One origin for the built UI and API; adjust both to your HTTPS domain in production.
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8000}
+    volumes:
+      - codepulse-data:/app/data
+    restart: unless-stopped
+
+  # Optional database: docker compose --profile postgres up --build
+  # Set DATABASE_URL=postgresql://codepulse:YOUR_PASSWORD@postgres:5432/codepulse
+  # and POSTGRES_PASSWORD=YOUR_PASSWORD in .env before using this profile.
+  postgres:
+    image: postgres:17-alpine
+    profiles: [postgres]
+    environment:
+      POSTGRES_DB: codepulse
+      POSTGRES_USER: codepulse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-development-only}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U codepulse -d codepulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  codepulse-data:
+  postgres-data:
