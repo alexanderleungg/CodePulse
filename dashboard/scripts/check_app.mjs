@@ -129,14 +129,20 @@ async function check(name,run){await run();passed++;console.log(`ok ${passed} - 
 try {
   await check('dashboard starts with a labeled fictional workspace',async()=>{
     await act(async()=>{reactRoot.render(React.createElement(App));await settle()})
-    assert.match(document.body.textContent,/Developer growth overview/)
+    assert.equal(text(get('main h1')),'Today')
     assert.match(text(get('.demo-notice')),/fictional developer/)
+    assert.equal(get('.topbar nav[aria-label="Main navigation"] a[aria-current="page"]').textContent,'Dashboard')
+    assert.equal(document.querySelectorAll('.profile-sidebar .stat').length,4,'Profile sidebar exposes four summary statistics')
+    assert.deepEqual([...document.querySelectorAll('.profile-sidebar .stat-value')].map(text),[fixtures.windows['30'].summary.commits,fixtures.windows['30'].summary.active_days,fixtures.windows['30'].summary.repositories,fixtures.windows['30'].summary.pull_requests].map(value=>value.toLocaleString()))
+    assert.equal(get('.today-grid').children[0],get('.goal-card'),'Today starts with the weekly goal')
+    assert.equal(get('.today-grid').children[1],get('.review-card'),'Practice reminders sit beside the goal')
+    assert.ok(get('.today-grid').compareDocumentPosition(get('.recommendation-grid')) & Node.DOCUMENT_POSITION_FOLLOWING,'Recommendations follow Today’s practice controls')
     assert.equal(get('.sidebar-profile small').textContent,'Demo workspace')
     assert.ok(requests.some(r=>r.path==='/api/dashboard' && r.query.get('days')==='30'))
   })
   await check('skill tracker exposes evidence and saves manual practice',async()=>{
     await navigate('skills')
-    assert.match(document.body.textContent,/Behind the signals/)
+    assert.match(document.body.textContent,/Skill evidence/)
     assert.equal(document.querySelectorAll('.skill-evidence').length,5)
     await input(get('.practice-form input:not([type="date"])'),'Practiced SQL indexing')
     await submit(get('.practice-form'))
@@ -168,23 +174,23 @@ try {
   })
   await check('project rerolls reach a third distinct brief and retain prior exclusions',async()=>{
     let card=get('.cp-project-card')
-    const titles=[text(card.querySelector('h3'))]
+    const titles=[text(card.querySelector('.cp-project-title'))]
     const firstProject=projectsFor(90,'beginner').find(p=>p.title===titles[0])
     for(let i=0;i<2;i++){
       await click(card.querySelector('.cp-project-reroll'))
-      card=[...document.querySelectorAll('.cp-project-card')].find(el=>text(el.querySelector('.cp-project-skill'))===firstProject.skill)
-      titles.push(text(card.querySelector('h3')))
+      card=[...document.querySelectorAll('.cp-project-card')].find(el=>text(el.querySelector('.cp-project-topic'))===firstProject.skill)
+      titles.push(text(card.querySelector('.cp-project-title')))
     }
     assert.equal(new Set(titles).size,3,'Two rerolls must produce three distinct projects')
     const last=requests.findLast(r=>r.path==='/api/recommendations' && r.query.has('exclude'))
     assert.equal(last.query.get('days'),'90')
     assert.ok(last.query.get('exclude').split(',').length>=2,'Previously seen projects remain excluded')
-    await click(findButton('View project brief ↗',card))
+    await click(findButton('View project brief',card))
     assert.ok(card.querySelector('.cp-project-details ol li'),'Brief includes actionable milestones')
   })
   await check('saved projects remain in the build list and can be completed',async()=>{
     const card=get('.cp-project-card')
-    const title=text(card.querySelector('h3'))
+    const title=text(card.querySelector('.cp-project-title'))
     await click(card.querySelector('.cp-project-save'))
     const saved=requests.findLast(r=>r.path==='/api/projects')
     assert.equal(saved.query.get('days'),'90','Saving uses the recommendation window')
@@ -243,7 +249,7 @@ try {
     failNextDashboard=true
     await input(get('[aria-label="Activity time range"]'),'180')
     assert.match(text(get('.notice.error')),/temporarily unavailable/)
-    assert.match(document.body.textContent,/Developer growth overview/)
+    assert.equal(text(get('main h1')),'Today')
     await click(findButton('Try again',get('.notice.error')))
     assert.equal(document.querySelector('.notice.error'),null)
     assert.equal(get('[aria-label="Activity time range"]').value,'180')

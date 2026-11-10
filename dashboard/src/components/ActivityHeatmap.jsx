@@ -35,7 +35,7 @@ export default function ActivityHeatmap({ activity = [], now, windowDays = 180 }
 
   return <section className="card heatmap-card" aria-label="Coding activity calendar">
     <div className="card-head">
-      <div><h3 className="card-title">Consistency, one day at a time</h3><p className="card-sub">{total.toLocaleString()} recorded activities · {activeDays} active days · UTC</p></div>
+      <div><h3 className="card-title">Activity calendar</h3><p className="card-sub">{total.toLocaleString()} recorded activities · {activeDays} active days · UTC</p></div>
       <span className="subtle-label">Last {daysInWindow} days</span>
     </div>
     <div className="heat-scroll">
@@ -49,6 +49,6 @@ export default function ActivityHeatmap({ activity = [], now, windowDays = 180 }
         </div>
       </div>
     </div>
-    <div className="heat-foot"><span className="heat-readout">{selected ? `${shortDate(selected.key)} · ${selected.count} recorded activities` : 'Small steps. A stronger habit.'}</span><span className="heat-scale" aria-hidden="true">Less {[0, 1, 2, 3, 4].map(level => <i key={level} data-level={level} />)} More</span></div>
+    <div className="heat-foot"><span className="heat-readout">{selected ? `${shortDate(selected.key)} · ${selected.count} recorded activities` : 'Hover or select a day for details'}</span><span className="heat-scale" aria-hidden="true">Less {[0, 1, 2, 3, 4].map(level => <i key={level} data-level={level} />)} More</span></div>
   </section>
 }

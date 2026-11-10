@@ -1,6 +1,6 @@
 export default function TopicChart({ skills = [] }) {
   return <section className="card topic-card" aria-label="Coding activity by skill area">
-    <div className="card-head"><div><h3 className="card-title">Where your code takes you</h3><p className="card-sub">Share of classified practice · marker shows your target</p></div><span className="subtle-label">Practice mix</span></div>
+    <div className="card-head"><div><h3 className="card-title">Coding activity by area</h3><p className="card-sub">Share of classified practice · marker shows your target</p></div><span className="subtle-label">Practice mix</span></div>
     <div className="cp-skill-bars">
       {skills.map(skill => <div className="cp-skill-row" key={skill.id}>
         <div className="cp-skill-label"><span><i className="dot" style={{ background: skill.color }} />{skill.label}</span><strong>{Number(skill.share || 0).toFixed(0)}<small>%</small></strong></div>

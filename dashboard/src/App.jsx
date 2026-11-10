@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { API_URL, getJSON, mutate, request } from './api'
 import { useRoute, to } from './router'
 import Icon from './components/Icon'
+import ProfileSidebar from './ProfileSidebar'
 import Dashboard from './pages/Dashboard'
 import SkillsPage from './pages/SkillsPage'
 import RepositoriesPage from './pages/RepositoriesPage'
@@ -9,14 +10,14 @@ import ProjectsPage from './pages/ProjectsPage'
 import SettingsPage from './pages/SettingsPage'
 const NotesPage = lazy(() => import('./pages/NotesPage'))
 
-const NAV = [['dashboard','overview','Overview'],['skills','skills','Skill tracker'],['repositories','repos','Repositories'],['projects','projects','Build next'],['notes','notes','Learning notes']]
+const NAV = [['dashboard','Dashboard'],['skills','Skills'],['repositories','Repositories'],['projects','Projects'],['notes','Notes']]
 const TITLES = {
-  dashboard: ['Developer growth overview', 'A clearer picture of your practice. A little direction for what’s next.'],
-  skills: ['Your skills, in perspective', 'See what you’re practicing, what’s getting quiet, and where you want to go.'],
-  repositories: ['The things you’re building', 'Your repositories and the skill signals behind them.'],
-  projects: ['What will you build next?', 'Turn a practice gap into something you’re proud to ship.'],
-  settings: ['Make growth your own', 'Set a direction that fits your goals, your time, and your curiosity.'],
-  notes: ['A place to revisit the fundamentals', 'Interactive algorithm notes, preserved from the original tracker.'],
+  dashboard: ['Today', ''],
+  skills: ['Skill tracker', 'Practice distribution, targets, and supporting evidence.'],
+  repositories: ['Repositories', 'Imported repositories and their skill signals.'],
+  projects: ['Project recommendations', 'Choose a project, review its brief, and add it to your build list.'],
+  settings: ['Preferences', 'Set your practice targets and manage your GitHub connection.'],
+  notes: ['Learning notes', 'Algorithm notes and interactive diagrams from the original tracker.'],
 }
 const EMPTY_SUBMISSIONS = []
 
@@ -33,7 +34,7 @@ function ConnectDialog({ config, onClose, onConnect, busy }) {
   }
   return <dialog ref={dialog} className="connect-dialog" onCancel={e => { if (busy) e.preventDefault(); else onClose() }} aria-labelledby="connect-title">
     <div className="dialog-top"><span className="dialog-icon"><Icon name="github" size={25} /></span><button className="icon-btn" aria-label="Close connection dialog" disabled={busy} onClick={onClose}><Icon name="close" /></button></div>
-    <h2 id="connect-title">Bring your code into focus.</h2><p className="muted">Start with a public GitHub profile. CodePulse reads its repositories, authored commits, languages, and pull requests.</p>
+    <h2 id="connect-title">Connect GitHub</h2><p className="muted">Start with a public GitHub profile. CodePulse reads its repositories, authored commits, languages, and pull requests.</p>
     <form onSubmit={connect}><label htmlFor="github-username">GitHub username</label><div className="username-input"><span>@</span><input id="github-username" autoFocus autoComplete="off" placeholder="your-username" value={username} onChange={e => setUsername(e.target.value)} disabled={busy} required maxLength={39} /></div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <button className="btn primary full-width" disabled={busy || !username.trim()}>{busy ? 'Reading GitHub activity…' : 'Explore public activity'}<Icon name={busy ? 'refresh' : 'arrow'} size={16} className={busy ? 'spin' : ''} /></button>
@@ -128,33 +129,36 @@ export default function App() {
   const saveProject = p => action(`/projects?days=${days}`,{project_id:p.id},'POST','Project added to your build list')
   const disconnect = () => action('/disconnect',undefined,'POST','Disconnected. You’re back in demo mode.')
 
-  if (!data) return <div className="initial-state"><div className="brand-icon"><PulseLogo /></div><h1>CodePulse<span>.</span></h1>{error ? <><p role="alert">{error}</p><p className="muted">Start the FastAPI backend, then try again.</p><button className="btn primary" onClick={()=>setRetry(n=>n+1)}>Try again <Icon name="refresh" /></button></> : <p className="muted">Finding the rhythm in your code…</p>}</div>
+  if (!data) return <div className="initial-state"><div className="brand-icon"><PulseLogo /></div><h1>CodePulse<span>.</span></h1>{error ? <><p role="alert">{error}</p><p className="muted">Start the FastAPI backend, then try again.</p><button className="btn primary" onClick={()=>setRetry(n=>n+1)}>Try again <Icon name="refresh" /></button></> : <p className="muted">Loading dashboard…</p>}</div>
   const [title,subtitle] = TITLES[page]
-  const displayName = data.profile.name || data.profile.login
-  return <div className="app-shell">
-    <a href="#main-content" className="skip-link" onClick={e=>{e.preventDefault();document.getElementById('main-content')?.focus()}}>Skip to content</a>
-    <aside className="app-sidebar">
-      <a className="brand" href={to()} aria-label="CodePulse home"><span className="brand-icon"><PulseLogo /></span>CodePulse<span className="brand-period">.</span></a>
-      <div className="workspace-label">YOUR WORKSPACE</div>
-      <nav className="main-nav" aria-label="Main navigation">{NAV.map(([key,icon,label]) => <a key={key} href={to(key === 'dashboard' ? '' : key)} className={page === key ? 'active' : ''} aria-current={page===key ? 'page' : undefined}><Icon name={icon} /><span>{label}</span>{key === 'projects' && <span className="nav-new">NEW</span>}</a>)}</nav>
-      <div className="sidebar-bottom"><div className="sidebar-tip"><span className="tip-icon"><Icon name="sparkle" /></span><strong>Build with intention.</strong><p>A few focused hours can open a whole new direction.</p><a href={to('projects')}>Find your next project <Icon name="arrow" size={14} /></a></div>
-        <a href={to('settings')} className={`settings-link ${page==='settings'?'active':''}`}><Icon name="settings" /><span>Preferences</span></a>
-        <div className="sidebar-profile"><div className="profile-avatar">{data.mode==='live' && data.profile.avatar_url ? <img src={data.profile.avatar_url} alt="" /> : <span>{displayName.split(' ').map(v=>v[0]).slice(0,2).join('').toUpperCase()}</span>}</div><div><strong>{displayName}</strong><small>{data.mode==='demo' ? 'Demo workspace' : `@${data.profile.login}`}</small></div><button className="icon-btn" aria-label="Manage GitHub connection" onClick={()=>setConnecting(true)}><Icon name="github" size={18} /></button></div>
-      </div>
-    </aside>
-    <div className="app-body"><header className="topbar"><div className="breadcrumb">Workspace <Icon name="chevron" size={12} /><strong>{NAV.find(n=>n[0]===page)?.[2] || 'Preferences'}</strong></div><div className="topbar-actions"><span className={`connection-status ${data.mode==='demo'?'demo':''}`}><i />{data.mode==='demo'?'Illustrative data':(data.connection?.verified ? 'GitHub connected' : 'Public profile')}</span><button className="btn connect-button" onClick={()=>setConnecting(true)} disabled={busy}><Icon name="github" size={16} />{data.mode==='demo'?'Connect GitHub':'Switch profile'}</button></div></header>
-      <main className="page-content" id="main-content" tabIndex={-1}>
-        <div className="page-heading"><div><div className="eyebrow">{page==='dashboard'?'YOUR CODE. YOUR DIRECTION.':'DEVELOPER GROWTH'}</div><h1>{title}<span className="heading-dot">.</span></h1><p>{subtitle}</p></div>{page!=='settings' && page!=='notes' && <div className="page-actions"><select aria-label="Activity time range" disabled={busy} value={days} onChange={e=>setDays(Number(e.target.value))}><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={180}>Last 6 months</option></select><button className="icon-btn" title="Export snapshot" aria-label="Export snapshot" onClick={exportData}><Icon name="download" /></button><button className="icon-btn" title="Sync GitHub" aria-label="Sync GitHub" disabled={busy} onClick={()=>action('/sync',undefined,'POST',data.mode==='demo'?'Demo snapshot refreshed':'GitHub snapshot refreshed')}><Icon name="refresh" className={busy?'spin':''} /></button></div>}</div>
-        {data.mode==='demo' && <div className="demo-notice"><span className="badge mint">DEMO</span><p>You’re viewing a fictional developer’s activity. Connect GitHub to see your own coding story.</p><button className="text-link" disabled={busy} onClick={()=>setConnecting(true)}>Make it yours <Icon name="arrow" size={14} /></button></div>}
+  const synced = new Date(data.synced_at)
+  const syncLabel = Number.isNaN(synced.getTime()) ? 'Not synced' : `synced ${synced.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`
+  const controls = <div className="page-actions">
+    <select aria-label="Activity time range" disabled={busy} value={days} onChange={e => setDays(Number(e.target.value))}><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option><option value={180}>Last 6 months</option></select>
+    <button className="icon-btn" title="Export snapshot" aria-label="Export snapshot" onClick={exportData}><Icon name="download" size={16} /></button>
+    <button className="icon-btn" title="Sync GitHub" aria-label="Sync GitHub" disabled={busy} onClick={() => action('/sync', undefined, 'POST', data.mode === 'demo' ? 'Demo snapshot refreshed' : 'GitHub snapshot refreshed')}><Icon name="refresh" size={16} className={busy ? 'spin' : ''} /></button>
+  </div>
+  return <div className="app">
+    <a href="#main-content" className="skip-link" onClick={e => { e.preventDefault(); document.getElementById('main-content')?.focus() }}>Skip to content</a>
+    <header className="topbar">
+      <a className="wordmark" href={to()} aria-label="CodePulse home">CODE <span>·</span> PULSE</a>
+      <nav className="main-nav" aria-label="Main navigation">{NAV.map(([key,label]) => <a key={key} href={to(key === 'dashboard' ? '' : key)} className={page === key ? 'active' : ''} aria-current={page === key ? 'page' : undefined}>{label}</a>)}</nav>
+      <div className="topbar-actions"><span className={`connection-status ${data.mode === 'demo' ? 'demo' : ''}`} title={data.mode === 'demo' ? 'Fictional sample activity' : syncLabel}><i />{data.mode === 'demo' ? 'Demo data' : data.connection?.verified ? syncLabel : 'Public profile'}</span><a className={`icon-btn preferences-link${page === 'settings' ? ' active' : ''}`} href={to('settings')} aria-label="Preferences"><Icon name="settings" size={17} /></a></div>
+    </header>
+    <div className="workspace-shell">
+      <ProfileSidebar data={data} busy={busy} onConnect={() => setConnecting(true)} />
+      <main className={`page-content page-${page}`} id="main-content" tabIndex={-1}>
+        <div className="page-heading"><div><h1>{title}</h1>{subtitle && <p>{subtitle}</p>}</div>{page !== 'settings' && page !== 'notes' && controls}</div>
+        {data.mode === 'demo' && <div className="demo-notice"><span className="badge">Demo</span><p>Viewing a fictional developer’s activity.</p><button className="text-link" disabled={busy} onClick={() => setConnecting(true)}>Connect your GitHub</button></div>}
         {error && <div className="notice error" role="alert">{error}<button className="text-link" onClick={()=>setRetry(n=>n+1)}>Try again</button></div>}
         {data.notices?.length > 0 && data.mode==='live' && <details className="coverage-notice"><summary>About this GitHub snapshot · {data.notices.length} coverage notes</summary><ul>{data.notices.map((n,i)=><li key={i}>{n}</li>)}</ul></details>}
-        {page==='dashboard' && <Dashboard data={data} onSave={saveProject} onReroll={reroll} busy={busy} recommendation={recommendations[0]} />}
+        {page==='dashboard' && <Dashboard data={data} onSave={saveProject} onReroll={reroll} busy={busy} recommendations={recommendations} />}
         {page==='skills' && <SkillsPage data={data} busy={busy} onPractice={entry=>action('/practice',entry,'POST','Practice recorded')} />}
         {page==='repositories' && <RepositoriesPage data={data} />}
         {page==='projects' && <ProjectsPage data={data} recommendations={recommendations} difficulty={difficulty} onDifficulty={changeDifficulty} onSave={saveProject} onReroll={reroll} onUpdate={(id,value)=>action(`/projects/${encodeURIComponent(id)}`,value,'PATCH','Project updated')} onRemove={id=>action(`/projects/${encodeURIComponent(id)}`,undefined,'DELETE','Project removed')} busy={busy} />}
         {page==='settings' && <SettingsPage key={`${data.mode}-${data.profile.login}-${JSON.stringify(data.settings)}`} data={data} busy={busy} onConnect={()=>setConnecting(true)} onDisconnect={disconnect} onSave={value=>action('/settings',value,'PUT','Preferences saved')} />}
         {page==='notes' && <Suspense fallback={<div className="card">Loading the learning library…</div>}><NotesPage slug={route.param} submissions={EMPTY_SUBMISSIONS} now={new Date(data.coverage.window_end).getTime()} /></Suspense>}
-        <footer className="page-footer"><span><span className="footer-pulse">⌁</span> Keep building. Keep becoming.</span><span>CodePulse <span className="separator">/</span> Evidence of practice, not proficiency.</span></footer>
+        <footer className="page-footer"><span>CodePulse</span><span>GitHub activity · UTC</span></footer>
       </main>
     </div>
     {busy && <div className="busy-bar" role="status">Working on your snapshot…</div>}

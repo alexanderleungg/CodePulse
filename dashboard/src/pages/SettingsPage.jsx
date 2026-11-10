@@ -11,12 +11,12 @@ export default function SettingsPage({ data, onSave, onConnect, onDisconnect, bu
   const [goal, setGoal] = useState(data.settings.weekly_goal)
   const total = Object.values(targets).reduce((a,b) => a + Number(b), 0)
   return <>
-    <section className="card settings-card"><div className="card-head"><div><h3 className="card-title">Choose your direction</h3><p className="card-sub">There is no universal skill mix. Set targets that reflect the developer you want to become.</p></div><Icon name="skills" /></div>
+    <section className="card settings-card"><div className="card-head"><div><h3 className="card-title">Practice targets</h3><p className="card-sub">Choose the share of practice you want to spend on each skill. Targets must total 100%.</p></div><Icon name="skills" /></div>
       <div className="presets">{Object.entries(PRESETS).map(([name,value]) => <button className="btn" key={name} disabled={busy} onClick={() => setTargets(value)}>{name}</button>)}</div>
       <form onSubmit={e => { e.preventDefault(); onSave({targets, weekly_goal:Number(goal)}) }}>
         <div className="target-inputs">{data.skills.map(s => <div className="target-row" key={s.id}><label htmlFor={`target-${s.id}`}><i className="dot" style={{ background: s.color }} />{s.label}</label><input aria-label={`${s.label} target slider`} type="range" min="0" max="100" step="5" value={targets[s.id] || 0} onChange={e => setTargets({...targets,[s.id]:Number(e.target.value)})} /><div className="percent-input"><input id={`target-${s.id}`} type="number" min="0" max="100" required value={targets[s.id] ?? 0} onChange={e => setTargets({...targets,[s.id]:e.target.value === '' ? '' : Number(e.target.value)})} /><span>%</span></div></div>)}</div>
         <p className={total === 100 ? 'target-total valid' : 'target-total'}>Total: {total}% <span>{total === 100 ? '✓ Ready to save' : 'Targets must add up to 100%'}</span></p>
-        <div className="weekly-setting"><div><label htmlFor="weekly-goal">Weekly practice goal</label><p className="muted">Days with GitHub activity or manual practice. Keep it achievable.</p></div><select id="weekly-goal" value={goal} onChange={e => setGoal(e.target.value)}>{[1,2,3,4,5,6,7].map(n => <option key={n} value={n}>{n} days / week</option>)}</select></div>
+        <div className="weekly-setting"><div><label htmlFor="weekly-goal">Weekly practice goal</label><p className="muted">Days with GitHub activity or manual practice.</p></div><select id="weekly-goal" value={goal} onChange={e => setGoal(e.target.value)}>{[1,2,3,4,5,6,7].map(n => <option key={n} value={n}>{n} days / week</option>)}</select></div>
         <button className="btn primary" disabled={busy || total !== 100}>Save preferences <Icon name="check" size={15} /></button>
       </form>
     </section>

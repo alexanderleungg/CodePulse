@@ -15,9 +15,9 @@ export default function SkillsPage({ data, onPractice, busy }) {
     if (success) setTitle('')
   }
   return <>
-    <div className="info-banner"><Icon name="skills" /><p>Your goals define your gaps. Compare your recent practice with the mix you want to build toward.</p><a href={to('settings')} className="text-link">Edit targets <Icon name="arrow" size={14} /></a></div>
+    <div className="info-banner"><Icon name="skills" /><p>Compare recorded practice with your targets. Adjust targets in Preferences.</p><a href={to('settings')} className="text-link">Edit targets <Icon name="arrow" size={14} /></a></div>
     <div className="skills-grid"><TopicRadar skills={data.skills} /><ReviewQueue skills={data.skills} /></div>
-    <section className="card"><div className="card-head"><div><h3 className="card-title">Behind the signals</h3><p className="card-sub">Repository-level estimates. A commit may practice more than one area.</p></div><span className="badge">{data.window_days} day window</span></div>
+    <section className="card"><div className="card-head"><div><h3 className="card-title">Skill evidence</h3><p className="card-sub">Repository-level estimates. A commit may practice more than one area.</p></div><span className="badge">{data.window_days} day window</span></div>
       <div className="skill-evidence-grid">{data.skills.map(s => <article className="skill-evidence" key={s.id}>
         <div className="flex-between"><h3><i className="dot" style={{ background: s.color }} />{s.label}</h3><strong style={{ color: s.color }}>{Math.round(s.share)}%</strong></div>
         <div className="skill-track"><span style={{ width: `${Math.min(100,s.share)}%`, background: s.color }} /><i style={{ left: `${Math.min(99,s.target)}%` }} title={`Target ${s.target}%`} /></div>
@@ -26,7 +26,7 @@ export default function SkillsPage({ data, onPractice, busy }) {
         <div className="evidence-foot"><span>{s.confidence || 'Heuristic'} signal</span><span>{s.trend > 0 ? '+' : ''}{Number(s.trend || 0).toFixed(1)} pp vs. prior period</span></div>
       </article>)}</div>
     </section>
-    <section className="card"><div className="card-head"><div><h3 className="card-title">Practice happens outside GitHub, too</h3><p className="card-sub">Log a course, a coding challenge, or a local project. Manual entries are labeled separately.</p></div><Icon name="plus" /></div>
+    <section className="card"><div className="card-head"><div><h3 className="card-title">Log practice</h3><p className="card-sub">Log a course, a coding challenge, or a local project. Manual entries are labeled separately.</p></div><Icon name="plus" /></div>
       <form className="practice-form" onSubmit={submit}>
         <label>Skill area<select value={skill} onChange={e => setSkill(e.target.value)}>{data.skills.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
         <label className="grow">What did you practice?<input required maxLength={160} minLength={3} placeholder="e.g. Practiced SQL joins and indexing" value={title} onChange={e => setTitle(e.target.value)} /></label>

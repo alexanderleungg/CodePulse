@@ -1,3 +1,11 @@
+# Frontend refresh
+
+- Replaced the navigation sidebar and large introductory headings with a compact top bar and the original tracker's profile/statistics sidebar.
+- Put weekly practice goals and reminders first, followed by ranked project recommendations, skill coverage, and activity.
+- Applied neutral charcoal surfaces, thin borders, blue links, green activity accents, and plain labels across all pages.
+- Kept GitHub connections, filters, recommendations, rerolls, project planning, practice entries, export, and learning notes.
+- Updated the frontend interaction checks to cover the new layout and existing workflows.
+
 # Conversion to CodePulse
 
 ## Preserved
