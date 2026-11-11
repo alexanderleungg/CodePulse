@@ -208,6 +208,11 @@ The optional `postgres` Compose profile starts PostgreSQL. Set a private `POSTGR
 
 ### Railway / other hosts
 
+The web start command is `python -m backend.server`. It reads `PORT` from the environment directly, so it also works when a hosting platform launches the process without a shell.
+
+If an existing Railway web service crashes with `'$PORT' is not a valid integer`, open that service's **Settings → Deploy → Custom Start Command**, replace its old command with `python -m backend.server`, and deploy the latest commit. Keep the service root directory at the repository root and use the included Dockerfile. This setting applies to the web service only; worker and scheduler commands stay as documented above.
+
+
 `Dockerfile` and `railway.json` support a single app service. Set the HTTPS origins and secrets through the provider's environment settings. Mount persistent storage at `/app/data` or configure managed PostgreSQL. Do not rely on an ephemeral filesystem for sessions or encrypted OAuth tokens. Configure the GitHub OAuth callback to match your deployed origin. Optional workers can run as additional services using the same database, key, and Redis queue.
 
 A separate Vercel frontend is possible, but requires correct API routing and cookie handling. Prefer a same-origin `/api` reverse proxy to the backend; use your own deployment's API URL rather than the old tracker URL. Cross-site cookies are affected by browser privacy policies, so a direct unrelated frontend/backend domain split is not the default setup here.

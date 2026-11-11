@@ -1,3 +1,9 @@
+# Deployment startup fix
+
+- Added `python -m backend.server` to read the hosting provider's `PORT` in Python rather than requiring shell expansion.
+- Updated the web Procfile entry and Docker command; documented the setting to change on existing Railway web services.
+- Added a regression check that launches the actual web process on a non-default port and requests its health endpoint.
+
 # Frontend refresh
 
 - Replaced the navigation sidebar and large introductory headings with a compact top bar and the original tracker's profile/statistics sidebar.
