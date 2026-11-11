@@ -220,7 +220,3 @@ A separate Vercel frontend is possible, but requires correct API routing and coo
 ## Extending the project
 
 Useful next steps include per-file skill evidence, deeper dependency analysis, an editable repository classification UI, GitHub App authorization for narrower repository access, richer background jobs, and deployment-specific account management. Keep coverage transparent as you add more data sources.
-
-## Attribution
-
-Adapted from the user-provided LeetCode tracker project, including its React component structure and algorithm notes/diagram library. The uploaded source did not include a license file. No new ownership or license over the original author's work is asserted; obtain the author's permission before redistributing or publishing it under a license.
